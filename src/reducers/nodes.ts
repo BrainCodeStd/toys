@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import initialState from "./initialState";
-import { Node } from "../types/Node";
+import { Node, Data } from "../types/Node";
 import { RootState } from "../store/configureStore";
 import fetch from "cross-fetch";
 
@@ -11,9 +11,10 @@ export interface NodesState {
 export const checkNodeStatus = createAsyncThunk(
   "nodes/checkNodeStatus",
   async (node: Node) => {
-    const response = await fetch(`${node.url}/api/v1/status`);
-    const data: { node_name: string } = await response.json();
-    return data;
+    const [status,blocks] = await Promise.all([fetch(`${node.url}/api/v1/status`),fetch(`${node.url}/api/v1/blocks`)]);
+    const statusData: { node_name: string } = await status.json();
+     const blocksData: { data: Data[] } = await blocks.json();
+    return {...statusData,...blocksData};
   }
 );
 
@@ -42,6 +43,7 @@ export const nodesSlice = createSlice({
         node.online = true;
         node.loading = false;
         node.name = action.payload.node_name;
+        node.data = action.payload.data || [];
       }
     });
     builder.addCase(checkNodeStatus.rejected, (state, action) => {
@@ -49,6 +51,7 @@ export const nodesSlice = createSlice({
       if (node) {
         node.online = false;
         node.loading = false;
+        node.error = action?.error?.message || 'Network Error'
       }
     });
   },

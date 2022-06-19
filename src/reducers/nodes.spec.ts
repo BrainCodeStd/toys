@@ -17,6 +17,8 @@ describe("Reducers::Nodes", () => {
     online: false,
     name: "Node 1",
     loading: false,
+    data:[],
+    error:''
   };
 
   const nodeB = {
@@ -24,6 +26,8 @@ describe("Reducers::Nodes", () => {
     online: false,
     name: "Node 2",
     loading: false,
+    data:[],
+    error:''
   };
 
   it("should set initial state by default", () => {
@@ -95,6 +99,7 @@ describe("Reducers::Nodes", () => {
           online: false,
           name: "alpha",
           loading: false,
+          error: "Network Error"
         },
         nodeB,
       ],
@@ -117,6 +122,8 @@ describe("Actions::Nodes", () => {
     online: false,
     name: "Node 1",
     loading: false,
+    data:[],
+    error:''
   };
 
   it("should fetch the node status", async () => {
@@ -125,6 +132,14 @@ describe("Actions::Nodes", () => {
         status: 200,
         json() {
           return Promise.resolve({ node_name: "Secret Lowlands" });
+        },
+      })
+    );
+    mockedFech.mockReturnValueOnce(
+      Promise.resolve({
+        status: 200,
+        json() {
+          return Promise.resolve({ data: [{}] });
         },
       })
     );
@@ -138,7 +153,7 @@ describe("Actions::Nodes", () => {
       expect.objectContaining({
         type: checkNodeStatus.fulfilled.type,
         meta: expect.objectContaining({ arg: node }),
-        payload: { node_name: "Secret Lowlands" },
+        payload: { node_name: "Secret Lowlands", data:[{}] },
       }),
     ]);
     expect(dispatch.mock.calls.flat()).toEqual(expected);
